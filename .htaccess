@@ -1,0 +1,75 @@
+# Rewrite motorunu aktif et
+RewriteEngine On
+
+# HTTP'den HTTPS'e yönlendirme (isteğe bağlı)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# .html uzantısını gizle
+RewriteCond %{THE_REQUEST} \.html [NC]
+RewriteRule ^(.*)\.html$ /$1 [R=301,L]
+
+# Uzantısız URL'ler için .html dosyasını kontrol et
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# POST ve OPTIONS isteklerine izin ver
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_METHOD} ^(POST|OPTIONS) [NC]
+    RewriteRule .* - [L]
+</IfModule>
+
+# Güvenlik önlemleri
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "POST, GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</IfModule>
+
+# İzin verilen HTTP metodları
+<LimitExcept GET POST OPTIONS>
+    Deny from all
+</LimitExcept>
+
+# Dizin listelemeyi devre dışı bırak
+Options -Indexes
+
+# Hata sayfaları
+ErrorDocument 404 /404.html
+ErrorDocument 403 /403.html
+ErrorDocument 405 /405.html
+ErrorDocument 500 /500.html
+
+# PHP dosyalarını doğrudan görüntülemeyi engelle
+<FilesMatch "^.*\.php$">
+    Require all granted
+</FilesMatch>
+
+# Belirli dosya türlerini engelle (güvenlik için)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Browser cache
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+</IfModule>
+
+# GZIP sıkıştırma
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE image/webp image/jpeg image/png
+</IfModule>
+
+# OPTIONS isteklerini yönet
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
