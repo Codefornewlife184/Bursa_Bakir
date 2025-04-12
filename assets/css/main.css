@@ -3049,7 +3049,7 @@ section {
 #hero {
   width: 100%;
   height: calc(100vh - 110px);
-  background: url("../img/hero/hero-slider.webp") top center;
+  background: url("../img/hero/6.webp") top center;
   background-size: cover;
   position: relative;
 }
